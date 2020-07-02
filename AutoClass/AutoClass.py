@@ -20,6 +20,58 @@ from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 def AutoClassImpute(data,cellwise_norm=True,log1p=True,encoder_layer_size=[256,128],dropout_rate=0,epochs=300,classifier_weight=0.3,
                     num_cluster=[4,5,6],reg_ae=0.001,reg_cf=0.001,batch_size=32,verbose=0,truelabel=[],
                     npc=15,es=30,lr=15):
+    """AutoClass imputation main function.
+    Autoencoder based scRNA-seq data imputation network,
+    a classifier branch is added from the bottleneck layer
+    to filter out noise and keep signal. Number of Clusters
+    needs to specify. Pre-clustering is performed to estimated
+    the celltypes if celltype information is not provided.
+    Normalized imputation matix and network information are returned.
+    
+    Parameters
+    ----------
+    data: numpy matix of raw counts.
+          Each row represents a cell, each column represents a gene.
+    cellwise_norm: 'bool'. Default: True.
+          If True, library size normalization if performed to make
+          the library size of each cell each to the median library size.
+    log1p: 'bool'. Default: True.
+          If true, the data is log transformed with a pseudocount of one.
+    encoder_layer_size: 'tuple' or 'list'. Default: [256,128].
+           Number of neurons in the encoder layers.
+    dropout_rate: 'float'. Default: 0.
+           Dropout rate of the autoencoder input for training.
+    epochs: 'int'. Default: 300.
+           Number of total epochs.
+    classifier_weight: 'float'. Default: 0.3.
+           Loss weight for classification. 
+    num_cluster: 'tuple' or 'list'. Default: [4,5,6].
+           Numbers of clusters in the preclustering step.
+    reg_ae: 'float'. Default: 0.001.
+           l2 kernel regularizer coefficient for autoencoder.
+    reg_cf: 'float'. Default: 0.001.
+           l2 kernel regularizer coefficient for classifier.
+    batch_size: 'int'. Default: 32.
+           Batch size for training.
+    verbose: 'bool'. Default: False.
+           If true, prints training information
+    truelabel: 'tuple' or 'list'. Default: [].
+           Cell type label for classification.
+    npc: 'int'. Default: 15.
+           Maximal number of principle components used in the k-mean 
+           pre-clustering.
+    es: 'int'. Default: 30.
+           Stops training if validation loss does not improve in given number 
+           of epochs.
+    lr: 'int'. Default: 15.
+           Reduces learning rate if validation loss does not improve in given
+           number of epochs.
+           
+    Returns:
+    ---------
+    Both normalized imputation matix and network information are returned.
+    
+    """
     t1 = time.time()
     AC = AutoClass()
     if cellwise_norm:
